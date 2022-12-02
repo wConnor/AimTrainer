@@ -1,0 +1,6 @@
+enum Screen {
+	MAIN_MENU,
+	SESSION,
+	SUMMARY,
+	OPTIONS,
+};
