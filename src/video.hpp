@@ -2,6 +2,7 @@
 #include <ctime>
 #include <random>
 #include <vector>
+#include <sstream>
 
 #include "screen.hpp"
 
@@ -35,6 +36,11 @@ private:
 	sf::Font font;
 
 	// session elements
-	std::vector<std::unique_ptr<sf::CircleShape>> targets;
+	std::vector<std::unique_ptr<sf::RectangleShape>> targets; // temporary
+	// std::vector<std::unique_ptr<sf::CircleShape>> targets;
 	int targets_hit = 0;
+	int max_targets = 5; // to be chosen by the player.
+	sf::Text targets_hit_text, score_text, timer_text;
+	sf::Clock current_session_timer;
+	sf::Time total_elapsed;
 };

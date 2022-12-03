@@ -1,5 +1,7 @@
 #include "video.hpp"
 #include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <iterator>
 
 Video::Video()
 {
@@ -11,7 +13,7 @@ bool Video::init()
 	window.create(sf::VideoMode(800, 600), "AimTrainer");
 	window.setVerticalSyncEnabled(true);
 
-	if (!font.loadFromFile("SFProText-Regular.ttf")) {
+	if (!font.loadFromFile("../../assets/fonts/Roboto-Regular.ttf")) {
 		return 1;
 	}
 
@@ -44,6 +46,16 @@ bool Video::init()
 	quit_text.setPosition(sf::Vector2f(0, 300));
 
 	// session
+	targets_hit_text.setFont(font);
+	targets_hit_text.setString("Targets hit: " + std::to_string(targets_hit));
+	targets_hit_text.setFillColor(sf::Color::Cyan);
+	targets_hit_text.setCharacterSize(24);
+	targets_hit_text.setPosition(0, 0);
+
+	timer_text.setFont(font);
+	timer_text.setFillColor(sf::Color::Magenta);
+	timer_text.setCharacterSize(24);
+	timer_text.setPosition(0, 30);
 
 	// main loop
 	while (window.isOpen()) {
@@ -60,17 +72,28 @@ bool Video::init()
 				if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 					if (current_screen == MAIN_MENU) {
 						if (check_button_clicked(start_rect)) {
-							start_text.setString("Clicked!");
 							targets_hit = 0;
-							randomise_targets(10);
+							randomise_targets(max_targets);
 							current_screen = SESSION;
+							current_session_timer.restart();
 						} else if (check_button_clicked(options_rect)) {
-							options_text.setString("Clicked!");
 							current_screen = OPTIONS;
 						} else if (check_button_clicked(quit_rect)) {
 							window.close();
 						}
 					} else if (current_screen == SESSION) {
+						if (targets_hit == max_targets - 1) {
+							targets_hit++;
+							current_screen = MAIN_MENU; // will be changed to stats screen
+							targets_hit =
+								0; // will be set to 0 in the draw_stats() function; NOT here.
+							targets_hit_text.setString("Targets hit: " +
+													   std::to_string(targets_hit));
+						} else if (check_button_clicked(*targets[targets_hit])) {
+							targets_hit++;
+							targets_hit_text.setString("Targets hit: " +
+													   std::to_string(targets_hit));
+						}
 					}
 				}
 
@@ -110,7 +133,14 @@ void Video::draw_main_menu()
 
 void Video::draw_session()
 {
+	std::ostringstream timer_ss;
+	timer_ss.precision(2);
+	timer_ss << std::fixed << current_session_timer.getElapsedTime().asSeconds();
+
+	timer_text.setString("Elapsed: " + timer_ss.str());
 	window.draw(*targets[targets_hit]);
+	window.draw(targets_hit_text);
+	window.draw(timer_text);
 }
 
 bool Video::check_button_clicked(const sf::RectangleShape &rect)
@@ -123,7 +153,7 @@ bool Video::check_button_clicked(const sf::RectangleShape &rect)
 
 bool Video::check_target_clicked(const sf::CircleShape &target)
 {
-	// TODO: implement.
+	// TODO: implement circle and rectangle (cursor) collision.
 	return true;
 }
 
@@ -131,13 +161,22 @@ void Video::randomise_targets(const int &amount)
 {
 	targets.clear();
 
-	for (int i = 0; i != amount; ++i) {
-		targets.push_back(std::make_unique<sf::CircleShape>());
-		targets[i]->setRadius(30);
-		targets[i]->setPointCount(30);
+	// temporarily using rectangles until circle collision is implemented.
+	for (int i = 0; i <= amount; ++i) {
+		targets.push_back(std::make_unique<sf::RectangleShape>());
 		targets[i]->setPosition(
 								sf::Vector2f(rand() % window.getSize().x, rand() % window.getSize().y));
+		targets[i]->setSize(sf::Vector2f(20, 20));
 	}
+
+	// for (int i = 0; i != amount; ++i) {
+	//	targets.push_back(std::make_unique<sf::CircleShape>());
+	//	targets[i]->setRadius(30);
+	//	targets[i]->setPointCount(30);
+	//	targets[i]->setPosition(sf::Vector2f(rand() % window.getSize().x,
+	//										 rand() %
+	// window.getSize().y));
+	// }
 }
 
 Video::~Video()
