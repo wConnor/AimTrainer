@@ -7,6 +7,8 @@ set(PROJECT_SOURCES
   video.cpp
 
   screen.hpp
+
+  mode.hpp
   )
 
 add_custom_target(run
@@ -18,3 +20,5 @@ add_custom_target(run
 find_package(SFML COMPONENTS system window graphics audio REQUIRED)
 add_executable(${CMAKE_PROJECT_NAME} ${PROJECT_SOURCES})
 target_link_libraries(${CMAKE_PROJECT_NAME} sfml-system sfml-window sfml-graphics sfml-audio)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)

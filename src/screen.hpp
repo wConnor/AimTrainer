@@ -1,5 +1,6 @@
 enum Screen {
 	MAIN_MENU,
+	MODE_SELECTION,
 	SESSION,
 	SUMMARY,
 	OPTIONS,
