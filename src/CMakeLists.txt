@@ -9,6 +9,8 @@ set(PROJECT_SOURCES
   screen.hpp
 
   mode.hpp
+
+  button.hpp
   )
 
 add_custom_target(run
