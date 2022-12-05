@@ -3,7 +3,7 @@
 #include <random>
 #include <vector>
 #include <sstream>
-#include <map>
+#include <unordered_map>
 #include <memory>
 
 #include "screen.hpp"
@@ -51,7 +51,7 @@ private:
 	// mode selection elements
 	sf::RectangleShape begin_rect, back_rect;
 	sf::Text classic_text, precision_text, speed_text, begin_text, back_text;
-	std::unordered_map<std::string, std::pair<std::unique_ptr<Button>, Mode>> modes;
+	std::unordered_map<Mode, std::unique_ptr<Button>> modes;
 	Mode mode_selected;
 
 	// session elements

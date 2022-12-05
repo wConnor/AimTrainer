@@ -4,9 +4,9 @@ Video::Video()
 {
 	std::srand(std::time(nullptr));
 
-	modes["classic"] = std::make_pair(std::make_unique<Button>(), CLASSIC);
-	modes["precision"] = std::make_pair(std::make_unique<Button>(), PRECISION);
-	modes["speed"] = std::make_pair(std::make_unique<Button>(), SPEED);
+	modes[CLASSIC] = std::make_unique<Button>();
+	modes[PRECISION] = std::make_unique<Button>();
+	modes[SPEED] = std::make_unique<Button>();
 }
 
 bool Video::init()
@@ -46,7 +46,7 @@ bool Video::init()
 						if (check_button_clicked(play_rect)) {
 							current_screen = MODE_SELECTION;
 							mode_selected = CLASSIC; // default mode
-							modes["classic"].first->button_text.setFillColor(sf::Color::Green);
+							modes[CLASSIC]->button_text.setFillColor(sf::Color::Green);
 						} else if (check_button_clicked(options_rect)) {
 							// current_screen = OPTIONS;
 						} else if (check_button_clicked(quit_rect)) {
@@ -54,14 +54,14 @@ bool Video::init()
 						}
 					} else if (current_screen == MODE_SELECTION) {
 						for (auto &c : modes) {
-							if (check_button_clicked(c.second.first->button_rect)) {
+							if (check_button_clicked(c.second->button_rect)) {
 								// deselect all other buttons
 								for (auto &c : modes) {
-									c.second.first->button_text.setFillColor(sf::Color::Black);
+									c.second->button_text.setFillColor(sf::Color::Black);
 								}
-								c.second.first->button_text.setFillColor(sf::Color::Green);
+								c.second->button_text.setFillColor(sf::Color::Green);
 
-								mode_selected = c.second.second;
+								mode_selected = c.first;
 								break;
 							}
 						}
@@ -134,15 +134,15 @@ void Video::draw_main_menu()
 
 void Video::draw_mode_selection()
 {
-	window.draw(modes["classic"].first->button_rect);
-	window.draw(modes["precision"].first->button_rect);
-	window.draw(modes["speed"].first->button_rect);
+	window.draw(modes[CLASSIC]->button_rect);
+	window.draw(modes[PRECISION]->button_rect);
+	window.draw(modes[SPEED]->button_rect);
 	window.draw(begin_rect);
 	window.draw(back_rect);
 
-	window.draw(modes["classic"].first->button_text);
-	window.draw(modes["precision"].first->button_text);
-	window.draw(modes["speed"].first->button_text);
+	window.draw(modes[CLASSIC]->button_text);
+	window.draw(modes[PRECISION]->button_text);
+	window.draw(modes[SPEED]->button_text);
 	window.draw(begin_text);
 	window.draw(back_text);
 }
@@ -206,37 +206,34 @@ void Video::set_up_main_menu_elements()
 void Video::set_up_mode_selection_elements()
 {
 	// classic
-	modes["classic"].first->button_rect.setSize(sf::Vector2f(200, 100));
-	modes["classic"].first->button_rect.setPosition(sf::Vector2f(0, 100));
-	modes["classic"].first->button_text.setFont(font);
-	modes["classic"].first->button_text.setString("Classic");
-	modes["classic"].first->button_text.setFillColor(sf::Color::Black);
-	modes["classic"].first->button_text.setCharacterSize(24);
-	modes["classic"].first->button_text.setPosition(
-													sf::Vector2f(modes["classic"].first->button_rect.getPosition().x,
-																 modes["classic"].first->button_rect.getPosition().y));
+	modes[CLASSIC]->button_rect.setSize(sf::Vector2f(200, 100));
+	modes[CLASSIC]->button_rect.setPosition(sf::Vector2f(0, 100));
+	modes[CLASSIC]->button_text.setFont(font);
+	modes[CLASSIC]->button_text.setString("Classic");
+	modes[CLASSIC]->button_text.setFillColor(sf::Color::Black);
+	modes[CLASSIC]->button_text.setCharacterSize(24);
+	modes[CLASSIC]->button_text.setPosition(sf::Vector2f(modes[CLASSIC]->button_rect.getPosition().x,
+														 modes[CLASSIC]->button_rect.getPosition().y));
 
 	// precision
-	modes["precision"].first->button_rect.setSize(sf::Vector2f(200, 100));
-	modes["precision"].first->button_rect.setPosition(sf::Vector2f(300, 100));
-	modes["precision"].first->button_text.setFont(font);
-	modes["precision"].first->button_text.setString("Precision");
-	modes["precision"].first->button_text.setFillColor(sf::Color::Black);
-	modes["precision"].first->button_text.setCharacterSize(24);
-	modes["precision"].first->button_text.setPosition(
-													  sf::Vector2f(modes["precision"].first->button_rect.getPosition().x,
-																   modes["precision"].first->button_rect.getPosition().y));
+	modes[PRECISION]->button_rect.setSize(sf::Vector2f(200, 100));
+	modes[PRECISION]->button_rect.setPosition(sf::Vector2f(300, 100));
+	modes[PRECISION]->button_text.setFont(font);
+	modes[PRECISION]->button_text.setString("Precision");
+	modes[PRECISION]->button_text.setFillColor(sf::Color::Black);
+	modes[PRECISION]->button_text.setCharacterSize(24);
+	modes[PRECISION]->button_text.setPosition(sf::Vector2f(modes[PRECISION]->button_rect.getPosition().x,
+														   modes[PRECISION]->button_rect.getPosition().y));
 
 	// speed
-	modes["speed"].first->button_rect.setSize(sf::Vector2f(200, 100));
-	modes["speed"].first->button_rect.setPosition(sf::Vector2f(600, 100));
-	modes["speed"].first->button_text.setFont(font);
-	modes["speed"].first->button_text.setString("Speed");
-	modes["speed"].first->button_text.setFillColor(sf::Color::Black);
-	modes["speed"].first->button_text.setCharacterSize(24);
-	modes["speed"].first->button_text.setPosition(
-												  sf::Vector2f(modes["speed"].first->button_rect.getPosition().x,
-															   modes["speed"].first->button_rect.getPosition().y));
+	modes[SPEED]->button_rect.setSize(sf::Vector2f(200, 100));
+	modes[SPEED]->button_rect.setPosition(sf::Vector2f(600, 100));
+	modes[SPEED]->button_text.setFont(font);
+	modes[SPEED]->button_text.setString("Speed");
+	modes[SPEED]->button_text.setFillColor(sf::Color::Black);
+	modes[SPEED]->button_text.setCharacterSize(24);
+	modes[SPEED]->button_text.setPosition(sf::Vector2f(modes[SPEED]->button_rect.getPosition().x,
+													   modes[SPEED]->button_rect.getPosition().y));
 
 	begin_rect.setSize(sf::Vector2f(200, 50));
 	begin_rect.setPosition(sf::Vector2f(0, window.getSize().y - begin_rect.getSize().y));
@@ -367,7 +364,7 @@ void Video::randomise_targets(const int &amount)
 	//	targets[i]->setPointCount(30);
 	//	targets[i]->setPosition(sf::Vector2f(rand() % window.getSize().x,
 	//										 rand() %
-	//window.getSize().y));
+	// window.getSize().y));
 	// }
 }
 
