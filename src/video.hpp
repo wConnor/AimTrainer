@@ -10,8 +10,8 @@
 #include "mode.hpp"
 #include "button.hpp"
 
-constexpr int CURSOR_WIDTH = 5;
-constexpr int CURSOR_HEIGHT = 5;
+constexpr int CURSOR_WIDTH = 10;
+constexpr int CURSOR_HEIGHT = 10;
 
 class Video
 {
@@ -24,33 +24,45 @@ public:
 private:
 	// functions to render different screens / sections.
 	void draw_main_menu();
+	void draw_options();
 	void draw_mode_selection();
 	void draw_session();
 	void draw_summary();
 
 	void set_up_main_menu_elements();
+	void set_up_options_elements();
 	void set_up_mode_selection_elements();
 	void set_up_session_elements();
 	void set_up_summary_elements();
 
 	// helper functions.
+	bool check_button_clicked(const sf::Sprite &sprite);
 	bool check_button_clicked(const sf::RectangleShape &rect);
 	bool check_target_clicked(const sf::CircleShape &target);
 	void prepare_session();
 	void end_session();
 	void randomise_targets(const int &amount);
 
+	// sfml
 	Screen current_screen = MAIN_MENU; // default screen to start on.
 	sf::RenderWindow window;
+	bool custom_cursor = false;
+	sf::Sprite cursor;
 
 	// main menu elements
-	sf::RectangleShape play_rect, options_rect, quit_rect;
-	sf::Text title_text, play_text, options_text, quit_text;
+	Button play_button, options_button, quit_button;
+	sf::Text title_text;
 	sf::Font font;
 
+	// options elements
+	Button ok_options_button;
+	sf::Texture default_cursor, plus_red;
+	sf::Sprite cursor_crosshair, plus_crosshair;
+	sf::Text options_text, crosshair_text;
+
 	// mode selection elements
-	sf::RectangleShape begin_rect, back_rect;
-	sf::Text classic_text, precision_text, speed_text, begin_text, back_text;
+	sf::Text selection_text;
+	Button begin_button, back_button;
 	std::unordered_map<Mode, std::unique_ptr<Button>> modes;
 	Mode mode_selected;
 
@@ -64,6 +76,6 @@ private:
 	sf::Time total_elapsed;
 
 	// summary elements
-	Button ok_button;
+	Button ok_summary_button;
 	sf::Text accuracy_summary_text;
 };

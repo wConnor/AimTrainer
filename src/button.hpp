@@ -3,6 +3,6 @@
 class Button
 {
 public:
-	sf::RectangleShape button_rect;
-	sf::Text button_text;
+	sf::RectangleShape rect;
+	sf::Text text;
 };
