@@ -61,8 +61,8 @@ private:
 	sf::Text options_text, crosshair_text;
 
 	// mode selection elements
-	sf::Text selection_text;
-	Button begin_button, back_button;
+	sf::Text selection_title_text, targets_text;
+	Button begin_button, back_button, targets_input;
 	std::unordered_map<Mode, std::unique_ptr<Button>> modes;
 	Mode mode_selected;
 
@@ -70,12 +70,12 @@ private:
 	std::vector<std::unique_ptr<sf::RectangleShape>> targets; // temporary
 	// std::vector<std::unique_ptr<sf::CircleShape>> targets;
 	int targets_hit = 0, targets_missed = 0;
-	int max_targets = 5; // to be chosen by the player.
+	int max_targets = 10; // to be chosen by the player.
 	sf::Text targets_hit_text, accuracy_text, score_text, timer_text;
 	sf::Clock current_session_timer;
 	sf::Time total_elapsed;
 
 	// summary elements
+	sf::Text summary_title_text, summary_text;
 	Button ok_summary_button;
-	sf::Text accuracy_summary_text;
 };

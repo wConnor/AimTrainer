@@ -11,7 +11,7 @@ Video::Video()
 
 bool Video::init()
 {
-	window.create(sf::VideoMode(800, 600), "AimTrainer");
+	window.create(sf::VideoMode(800, 600), "AimTrainer", sf::Style::Titlebar | sf::Style::Close);
 	window.setVerticalSyncEnabled(true);
 
 	if (!font.loadFromFile("./assets/fonts/Roboto-Regular.ttf")) {
@@ -34,8 +34,28 @@ bool Video::init()
 			case sf::Event::KeyPressed:
 				if (e.key.code == sf::Keyboard::Escape && current_screen == SESSION) {
 					end_session();
+					current_screen = MAIN_MENU;
 				}
 
+				if (e.key.code == sf::Keyboard::BackSpace && current_screen == MODE_SELECTION &&
+					!targets_input.text.getString().isEmpty()) {
+					std::string temp = targets_input.text.getString();
+					temp.pop_back();
+					targets_input.text.setString(temp);
+				}
+
+				break;
+			case sf::Event::TextEntered:
+				if (current_screen == MODE_SELECTION) {
+					if (e.text.unicode < 128) {
+						char casted = static_cast<char>(e.text.unicode);
+						if (casted >= '0' && casted <= '9') {
+							std::string temp = targets_input.text.getString();
+							temp += casted;
+							targets_input.text.setString(temp);
+						}
+					}
+				}
 				break;
 			case sf::Event::Closed:
 				window.close();
@@ -55,6 +75,7 @@ bool Video::init()
 							current_screen = MODE_SELECTION;
 							mode_selected = CLASSIC; // default mode
 							modes[CLASSIC]->text.setFillColor(sf::Color::Green);
+							targets_input.text.setString("");
 						} else if (check_button_clicked(options_button.rect)) {
 							current_screen = OPTIONS;
 						} else if (check_button_clicked(quit_button.rect)) {
@@ -91,15 +112,13 @@ bool Video::init()
 							}
 						}
 						if (check_button_clicked(begin_button.rect)) {
-							prepare_session();
+							if (!targets_input.text.getString().isEmpty()) {
+								prepare_session();
+							}
 						} else if (check_button_clicked(back_button.rect)) {
 							current_screen = MAIN_MENU;
 						}
 					} else if (current_screen == SESSION) {
-						if (targets_hit == max_targets - 1) {
-							end_session();
-							current_screen = SUMMARY;
-						}
 
 						check_button_clicked(*targets[targets_hit]) ? targets_hit++ : targets_missed++;
 						targets_hit_text.setString("Targets hit: " + std::to_string(targets_hit));
@@ -131,7 +150,12 @@ bool Video::init()
 		} else if (current_screen == MODE_SELECTION) {
 			draw_mode_selection();
 		} else if (current_screen == SESSION) {
-			draw_session();
+			if (targets_hit == max_targets) {
+				end_session();
+				current_screen = SUMMARY;
+			} else {
+				draw_session();
+			}
 		} else if (current_screen == SUMMARY) {
 			draw_summary();
 		}
@@ -180,13 +204,16 @@ void Video::draw_mode_selection()
 	window.draw(modes[CLASSIC]->rect);
 	window.draw(modes[PRECISION]->rect);
 	window.draw(modes[SPEED]->rect);
+	window.draw(targets_input.rect);
 	window.draw(begin_button.rect);
 	window.draw(back_button.rect);
 
-	window.draw(selection_text);
+	window.draw(selection_title_text);
 	window.draw(modes[CLASSIC]->text);
 	window.draw(modes[PRECISION]->text);
 	window.draw(modes[SPEED]->text);
+	window.draw(targets_text);
+	window.draw(targets_input.text);
 	window.draw(begin_button.text);
 	window.draw(back_button.text);
 }
@@ -206,7 +233,8 @@ void Video::draw_session()
 
 void Video::draw_summary()
 {
-	window.draw(accuracy_summary_text);
+	window.draw(summary_title_text);
+	window.draw(summary_text);
 	window.draw(ok_summary_button.rect);
 	window.draw(ok_summary_button.text);
 }
@@ -292,12 +320,12 @@ void Video::set_up_options_elements()
 
 void Video::set_up_mode_selection_elements()
 {
-	selection_text.setFont(font);
-	selection_text.setCharacterSize(40);
-	selection_text.setString("Select Mode");
-	selection_text.setStyle(sf::Text::Bold);
-	selection_text.setPosition(10, 10);
-	selection_text.setFillColor(sf::Color::White);
+	selection_title_text.setFont(font);
+	selection_title_text.setCharacterSize(40);
+	selection_title_text.setString("Select Mode");
+	selection_title_text.setStyle(sf::Text::Bold);
+	selection_title_text.setPosition(10, 10);
+	selection_title_text.setFillColor(sf::Color::White);
 
 	// classic
 	modes[CLASSIC]->rect.setSize(sf::Vector2f(200, 100));
@@ -313,7 +341,7 @@ void Video::set_up_mode_selection_elements()
 	modes[PRECISION]->rect.setSize(sf::Vector2f(200, 100));
 	modes[PRECISION]->rect.setPosition(sf::Vector2f(300, 100));
 	modes[PRECISION]->text.setFont(font);
-	modes[PRECISION]->text.setString("Precision\n (not implemented)");
+	modes[PRECISION]->text.setString("Precision\n(not implemented)");
 	modes[PRECISION]->text.setFillColor(sf::Color::Black);
 	modes[PRECISION]->text.setCharacterSize(24);
 	modes[PRECISION]->text.setPosition(
@@ -323,11 +351,27 @@ void Video::set_up_mode_selection_elements()
 	modes[SPEED]->rect.setSize(sf::Vector2f(200, 100));
 	modes[SPEED]->rect.setPosition(sf::Vector2f(600, 100));
 	modes[SPEED]->text.setFont(font);
-	modes[SPEED]->text.setString("Speed\n (not implemented)");
+	modes[SPEED]->text.setString("Speed\(not implemented)");
 	modes[SPEED]->text.setFillColor(sf::Color::Black);
 	modes[SPEED]->text.setCharacterSize(24);
 	modes[SPEED]->text.setPosition(
 								   sf::Vector2f(modes[SPEED]->rect.getPosition().x, modes[SPEED]->rect.getPosition().y));
+
+	targets_text.setFont(font);
+	targets_text.setString("Number of Targets:");
+	targets_text.setFillColor(sf::Color::White);
+	targets_text.setCharacterSize(24);
+	targets_text.setPosition(sf::Vector2f(0, 250));
+
+	targets_input.rect.setSize(sf::Vector2f(200, 50));
+	targets_input.rect.setPosition(
+								   sf::Vector2f(targets_text.getPosition().x + 250, targets_text.getPosition().y));
+
+	targets_input.text.setFont(font);
+	targets_input.text.setFillColor(sf::Color::Black);
+	targets_input.text.setCharacterSize(24);
+	targets_input.text.setPosition(
+								   sf::Vector2f(targets_input.rect.getPosition().x, targets_input.rect.getPosition().y));
 
 	begin_button.rect.setSize(sf::Vector2f(200, 50));
 	begin_button.rect.setPosition(sf::Vector2f(0, window.getSize().y - begin_button.rect.getSize().y));
@@ -373,10 +417,15 @@ void Video::set_up_session_elements()
 
 void Video::set_up_summary_elements()
 {
-	accuracy_summary_text.setFont(font);
-	accuracy_summary_text.setCharacterSize(24);
-	accuracy_summary_text.setFillColor(sf::Color::Cyan);
-	accuracy_summary_text.setPosition(10, 10);
+	summary_title_text.setFont(font);
+	summary_title_text.setCharacterSize(40);
+	summary_title_text.setString("Summary");
+	summary_title_text.setPosition(10, 10);
+
+	summary_text.setFont(font);
+	summary_text.setCharacterSize(24);
+	summary_text.setFillColor(sf::Color::White);
+	summary_text.setPosition(10, 100);
 
 	ok_summary_button.rect.setSize(sf::Vector2f(200, 50));
 	ok_summary_button.rect.setPosition(
@@ -419,6 +468,7 @@ void Video::prepare_session()
 
 	switch (mode_selected) {
 	case CLASSIC:
+		max_targets = std::stoi(std::string(targets_input.text.getString()));
 		randomise_targets(max_targets);
 		break;
 
@@ -435,15 +485,16 @@ void Video::prepare_session()
 
 void Video::end_session()
 {
-	targets_hit++;
-	current_screen = MAIN_MENU; // will be changed to stats screen
-
 	std::ostringstream acc_ss;
 	acc_ss.precision(2);
 	acc_ss << std::fixed
 		   << static_cast<double>(targets_hit) /
 		(static_cast<double>(targets_hit) + static_cast<double>(targets_missed)) * 100.0;
-	accuracy_summary_text.setString("Accuracy: " + acc_ss.str() + "%");
+	summary_text.setString("Time: " + std::to_string(current_session_timer.getElapsedTime().asSeconds()) +
+						   " seconds"
+						   "\nTotal Targets Hit: " +
+						   std::to_string(targets_hit) + "\nMisses: " + std::to_string(targets_missed) +
+						   "\nAccuracy: " + acc_ss.str() + "%");
 
 	targets_hit = 0;
 	targets_missed = 0;
@@ -458,8 +509,10 @@ void Video::randomise_targets(const int &amount)
 	// temporarily using rectangles until circle collision detection is implemented.
 	for (int i = 0; i <= amount; ++i) {
 		targets.push_back(std::make_unique<sf::RectangleShape>());
-		targets[i]->setPosition(sf::Vector2f(rand() % window.getSize().x, rand() % window.getSize().y));
 		targets[i]->setSize(sf::Vector2f(40, 40));
+		targets[i]->setPosition(
+								sf::Vector2f(rand() % (window.getSize().x - static_cast<int>(targets[i]->getSize().x)),
+											 rand() % (window.getSize().y - static_cast<int>(targets[i]->getSize().y))));
 	}
 
 	// for (int i = 0; i != amount; ++i) {
