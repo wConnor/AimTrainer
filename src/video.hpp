@@ -74,8 +74,9 @@ private:
 	int targets_hit = 0, targets_missed = 0;
 	int max_targets = 10; // to be chosen by the player.
 	sf::Text targets_hit_text, accuracy_text, score_text, timer_text;
-	sf::Clock current_session_timer;
-	sf::Time total_elapsed;
+	sf::Clock current_session_timer, countdown_timer;
+	sf::Time start_time;
+	float time_remaining;
 
 	// summary elements
 	sf::Text summary_title_text, summary_text;

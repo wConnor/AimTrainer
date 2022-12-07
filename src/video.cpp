@@ -172,7 +172,8 @@ bool Video::init()
 							}
 
 						} else if (check_button_clicked(begin_button.rect)) {
-							if (!input_focus["target_count"].first->text.getString().isEmpty()) {
+							if ((!countdown_mode && !input_focus["target_count"].first->text.getString().isEmpty()) ||
+								(countdown_mode && !input_focus["time"].first->text.getString().isEmpty())) {
 								prepare_session();
 							}
 						} else if (check_button_clicked(back_button.rect)) {
@@ -293,13 +294,26 @@ void Video::draw_session()
 {
 	std::ostringstream timer_ss;
 	timer_ss.precision(2);
-	timer_ss << std::fixed << current_session_timer.getElapsedTime().asSeconds();
 
-	timer_text.setString("Elapsed: " + timer_ss.str());
+	if (countdown_mode) {
+		time_remaining = (start_time - sf::seconds(current_session_timer.getElapsedTime().asSeconds())).asSeconds();
+		if (time_remaining <= 0.0f) {
+			end_session();
+			current_screen = SUMMARY;
+		}
+		timer_ss << std::fixed << time_remaining;
+		timer_text.setString("Remaining: " + timer_ss.str());
+		randomise_targets(3);
+	} else {
+		timer_ss << std::fixed << current_session_timer.getElapsedTime().asSeconds();
+		timer_text.setString("Elapsed: " + timer_ss.str());
+	}
+
 	window.draw(*targets[targets_hit]);
 	window.draw(targets_hit_text);
 	window.draw(accuracy_text);
 	window.draw(timer_text);
+
 }
 
 void Video::draw_summary()
@@ -582,7 +596,10 @@ void Video::prepare_session()
 
 	switch (mode_selected) {
 	case CLASSIC:
-		if (!countdown_mode) {
+		if (countdown_mode) {
+			start_time = sf::seconds(std::stof(std::string(input_focus["time"].first->text.getString())));
+			max_targets = 5;
+		} else {
 			max_targets = std::stoi(std::string(input_focus["target_count"].first->text.getString()));
 		}
 		randomise_targets(max_targets);
@@ -620,7 +637,9 @@ void Video::end_session()
 
 void Video::randomise_targets(const int &amount)
 {
-	targets.clear();
+	if (!countdown_mode) {
+		targets.clear();
+	}
 
 	// temporarily using rectangles until circle collision detection is implemented.
 	for (int i = 0; i <= amount; ++i) {
