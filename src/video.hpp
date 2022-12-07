@@ -61,8 +61,10 @@ private:
 	sf::Text options_text, crosshair_text;
 
 	// mode selection elements
-	sf::Text selection_title_text, targets_text;
-	Button begin_button, back_button, targets_input;
+	bool countdown_mode = false;
+	sf::Text selection_title_text, targets_text, on_screen_text, countdown_text, time_text;
+	std::map<std::string, std::pair<std::unique_ptr<Button>, bool>> input_focus;
+	Button begin_button, back_button, countdown_input;
 	std::unordered_map<Mode, std::unique_ptr<Button>> modes;
 	Mode mode_selected;
 
