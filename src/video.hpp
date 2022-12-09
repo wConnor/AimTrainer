@@ -72,7 +72,7 @@ private:
 	std::vector<std::unique_ptr<sf::RectangleShape>> targets; // temporary
 	// std::vector<std::unique_ptr<sf::CircleShape>> targets;
 	int targets_hit = 0, targets_missed = 0;
-	int max_targets = 10; // to be chosen by the player.
+	int max_targets = 10, targets_on_screen = 0; // to be chosen by the player.
 	sf::Text targets_hit_text, accuracy_text, score_text, timer_text;
 	sf::Clock current_session_timer, countdown_timer;
 	sf::Time start_time;

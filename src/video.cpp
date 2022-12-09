@@ -174,6 +174,7 @@ bool Video::init()
 						} else if (check_button_clicked(begin_button.rect)) {
 							if ((!countdown_mode && !input_focus["target_count"].first->text.getString().isEmpty()) ||
 								(countdown_mode && !input_focus["time"].first->text.getString().isEmpty())) {
+								// targets_on_screen = std::stoi(std::string(input_focus["time"].first->text.getString()));
 								prepare_session();
 							}
 						} else if (check_button_clicked(back_button.rect)) {
@@ -300,16 +301,17 @@ void Video::draw_session()
 		if (time_remaining <= 0.0f) {
 			end_session();
 			current_screen = SUMMARY;
+			return;
 		}
 		timer_ss << std::fixed << time_remaining;
 		timer_text.setString("Remaining: " + timer_ss.str());
-		randomise_targets(3);
+
 	} else {
 		timer_ss << std::fixed << current_session_timer.getElapsedTime().asSeconds();
 		timer_text.setString("Elapsed: " + timer_ss.str());
+		window.draw(*targets[targets_hit]);
 	}
 
-	window.draw(*targets[targets_hit]);
 	window.draw(targets_hit_text);
 	window.draw(accuracy_text);
 	window.draw(timer_text);
