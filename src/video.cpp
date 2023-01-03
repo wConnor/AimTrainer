@@ -36,11 +36,13 @@ bool Video::init()
 		while (window.pollEvent(e)) {
 			switch (e.type) {
 			case sf::Event::KeyPressed:
+				// if the user presses the 'ESC' key, bring the user back to the main menu
 				if (e.key.code == sf::Keyboard::Escape && current_screen == SESSION) {
 					end_session();
 					current_screen = MAIN_MENU;
 				}
 
+				// implement the 'Backspace' functionality on the mode selection screen's input boxes.
 				if (e.key.code == sf::Keyboard::BackSpace && current_screen == MODE_SELECTION) {
 					for (auto &c : input_focus) {
 						if (c.second.second && !c.second.first->text.getString().isEmpty()) {
@@ -54,6 +56,8 @@ bool Video::init()
 
 				break;
 			case sf::Event::TextEntered:
+				// handles the insertion of numbers into the input boxes on the mode selection screen.
+				// only numbers are allowed - anything else is ignored.
 				if (current_screen == MODE_SELECTION) {
 					if (e.text.unicode < 128) {
 						char casted = static_cast<char>(e.text.unicode);
@@ -172,16 +176,33 @@ bool Video::init()
 							}
 
 						} else if (check_button_clicked(begin_button.rect)) {
-							if ((!countdown_mode && !input_focus["target_count"].first->text.getString().isEmpty()) ||
+							if (!input_focus["on_screen_count"].first->text.getString().isEmpty() &&
+								(!countdown_mode &&
+								 !input_focus["target_count"].first->text.getString().isEmpty()) ||
 								(countdown_mode && !input_focus["time"].first->text.getString().isEmpty())) {
-								// targets_on_screen = std::stoi(std::string(input_focus["time"].first->text.getString()));
+								targets_on_screen = std::stoi(
+															  std::string(input_focus["on_screen_count"].first->text.getString()));
 								prepare_session();
 							}
 						} else if (check_button_clicked(back_button.rect)) {
 							current_screen = MAIN_MENU;
 						}
 					} else if (current_screen == SESSION) {
-						check_button_clicked(*targets[targets_hit]) ? targets_hit++ : targets_missed++;
+						hit = false;
+
+						for (auto &c : targets) {
+							if (check_button_clicked(*c)) {
+								c = generate_target();
+								targets_hit++;
+								hit = true;
+								break;
+							}
+						}
+
+						if (!hit) {
+							targets_missed++;
+						}
+
 						targets_hit_text.setString("Targets hit: " + std::to_string(targets_hit));
 						std::ostringstream acc_ss;
 						acc_ss.precision(2);
@@ -211,7 +232,7 @@ bool Video::init()
 		} else if (current_screen == MODE_SELECTION) {
 			draw_mode_selection();
 		} else if (current_screen == SESSION) {
-			if (targets_hit == max_targets) {
+			if (targets_hit == max_targets && !countdown_mode) {
 				end_session();
 				current_screen = SUMMARY;
 			} else {
@@ -297,7 +318,8 @@ void Video::draw_session()
 	timer_ss.precision(2);
 
 	if (countdown_mode) {
-		time_remaining = (start_time - sf::seconds(current_session_timer.getElapsedTime().asSeconds())).asSeconds();
+		time_remaining =
+			(start_time - sf::seconds(current_session_timer.getElapsedTime().asSeconds())).asSeconds();
 		if (time_remaining <= 0.0f) {
 			end_session();
 			current_screen = SUMMARY;
@@ -309,13 +331,15 @@ void Video::draw_session()
 	} else {
 		timer_ss << std::fixed << current_session_timer.getElapsedTime().asSeconds();
 		timer_text.setString("Elapsed: " + timer_ss.str());
-		window.draw(*targets[targets_hit]);
+	}
+
+	for (auto &c : targets) {
+		window.draw(*c);
 	}
 
 	window.draw(targets_hit_text);
 	window.draw(accuracy_text);
 	window.draw(timer_text);
-
 }
 
 void Video::draw_summary()
@@ -585,12 +609,6 @@ bool Video::check_button_clicked(const sf::RectangleShape &rect)
 	return cursor_rect.intersects(rect.getGlobalBounds());
 }
 
-bool Video::check_target_clicked(const sf::CircleShape &target)
-{
-	// TODO: implement circle and rectangle (cursor) collision.
-	return 0;
-}
-
 void Video::prepare_session()
 {
 	targets_hit = 0;
@@ -600,11 +618,15 @@ void Video::prepare_session()
 	case CLASSIC:
 		if (countdown_mode) {
 			start_time = sf::seconds(std::stof(std::string(input_focus["time"].first->text.getString())));
-			max_targets = 5;
 		} else {
 			max_targets = std::stoi(std::string(input_focus["target_count"].first->text.getString()));
 		}
-		randomise_targets(max_targets);
+
+		targets.clear();
+		for (int i = 0; i != targets_on_screen; ++i) {
+			targets.push_back(generate_target());
+		}
+
 		break;
 
 	case PRECISION:
@@ -637,29 +659,15 @@ void Video::end_session()
 	accuracy_text.setString("Accuracy: 100.00%");
 }
 
-void Video::randomise_targets(const int &amount)
+std::unique_ptr<sf::RectangleShape> Video::generate_target()
 {
-	if (!countdown_mode) {
-		targets.clear();
-	}
+	std::unique_ptr<sf::RectangleShape> target = std::make_unique<sf::RectangleShape>();
 
-	// temporarily using rectangles until circle collision detection is implemented.
-	for (int i = 0; i <= amount; ++i) {
-		targets.push_back(std::make_unique<sf::RectangleShape>());
-		targets[i]->setSize(sf::Vector2f(40, 40));
-		targets[i]->setPosition(
-								sf::Vector2f(rand() % (window.getSize().x - static_cast<int>(targets[i]->getSize().x)),
-											 rand() % (window.getSize().y - static_cast<int>(targets[i]->getSize().y))));
-	}
+	target->setSize(sf::Vector2f(40, 40));
+	target->setPosition(sf::Vector2f(rand() % (window.getSize().x - static_cast<int>(target->getSize().x)),
+									 rand() % (window.getSize().y - static_cast<int>(target->getSize().y))));
 
-	// for (int i = 0; i != amount; ++i) {
-	//	targets.push_back(std::make_unique<sf::CircleShape>());
-	//	targets[i]->setRadius(30);
-	//	targets[i]->setPointCount(30);
-	//	targets[i]->setPosition(sf::Vector2f(rand() % window.getSize().x,
-	//										 rand() %
-	// window.getSize().y));
-	// }
+	return std::move(target);
 }
 
 Video::~Video()

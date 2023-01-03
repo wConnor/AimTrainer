@@ -41,7 +41,7 @@ private:
 	bool check_target_clicked(const sf::CircleShape &target);
 	void prepare_session();
 	void end_session();
-	void randomise_targets(const int &amount);
+	std::unique_ptr<sf::RectangleShape> generate_target();
 
 	// sfml
 	Screen current_screen = MAIN_MENU; // default screen to start on.
@@ -73,6 +73,7 @@ private:
 	// std::vector<std::unique_ptr<sf::CircleShape>> targets;
 	int targets_hit = 0, targets_missed = 0;
 	int max_targets = 10, targets_on_screen = 0; // to be chosen by the player.
+	bool hit = false;
 	sf::Text targets_hit_text, accuracy_text, score_text, timer_text;
 	sf::Clock current_session_timer, countdown_timer;
 	sf::Time start_time;
