@@ -14,7 +14,7 @@ $ cmake ..
 $ make -j$(nproc)
 ```
 
-The binary can then be executed using `./src/AimTrainer`.
+The binary can then be executed using `cd src/ && ./AimTrainer`.
 
 ### Windows
 TODO: either rewrite CMakeLists.txt in a way usable for Windows or provide a Visual Studio project file.
